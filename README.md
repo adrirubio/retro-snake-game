@@ -1,2 +1,2 @@
-# snake-game
-A classic Snake game
+# retro-snake-game
+A retro Snake game
