@@ -21,6 +21,18 @@ class fruit:
         fruit_rect = pygame.Rect(px, py, cell_size, cell_size)
         pygame.draw.rect(screen, pygame.Color("firebrick"), fruit_rect)
 
+# Class for snake
+class snake:
+    def __init__(self):
+        self.body = [Vector2(3, 10), Vector2(4, 10), Vector2(5, 10)]
+
+    def draw_snake(self):
+        for block in self.body:
+            px = block.x * cell_size
+            py = grid_top + block.y * cell_size
+            snake_rect = pygame.Rect(px, py, cell_size, cell_size)
+            pygame.draw.rect(screen, pygame.Color("green"), snake_rect)
+
 pygame.init()
 pygame.mixer.init()
 
@@ -56,6 +68,7 @@ flicker_done = False
 clock = pygame.time.Clock()
 
 fruit = fruit()
+snake = snake()
 
 # Game loop
 running = True
@@ -103,6 +116,7 @@ while running:
         screen.blit(snip, snip_rect)
 
     fruit.draw_fruit()
+    snake.draw_snake()
 
     screen.blit(scan, (0, 0))
     pygame.display.update()
