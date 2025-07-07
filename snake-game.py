@@ -1,5 +1,25 @@
 # snake-game.py
 import pygame, sys
+from pygame.math import Vector2
+from random import randint
+
+grid_top  = 100
+cell_size = 20
+max_cols = 800 // cell_size
+max_rows = (600 - grid_top) // cell_size
+
+# Class for fruit
+class fruit:
+    def __init__(self):
+        self.x = randint(0, max_cols - 1)
+        self.y = randint(0, max_rows - 1)
+        self.pos = Vector2(self.x, self.y)
+
+    def draw_fruit(self):
+        px = self.pos.x * cell_size
+        py = grid_top + self.pos.y * cell_size
+        fruit_rect = pygame.Rect(px, py, cell_size, cell_size)
+        pygame.draw.rect(screen, pygame.Color("firebrick"), fruit_rect)
 
 pygame.init()
 
@@ -24,6 +44,8 @@ flicker_done = False
 
 clock = pygame.time.Clock()
 
+fruit = fruit()
+
 # Game loop
 running = True
 while running:
@@ -35,6 +57,10 @@ while running:
             running = False
 
     screen.fill((15, 56, 15))
+
+    # Color background
+    play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
+    screen.fill((24, 90, 0), play_rect)
 
     # Flicker
     if not flicker_done:
@@ -61,6 +87,8 @@ while running:
         snip = title_font.render(message[0:count // speed], True, main_color)
         snip_rect = snip.get_rect(center=(800 // 2, 50))
         screen.blit(snip, snip_rect)
+
+    fruit.draw_fruit()
 
     pygame.display.update()
 
