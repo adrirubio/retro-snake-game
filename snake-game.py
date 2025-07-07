@@ -22,12 +22,23 @@ class fruit:
         pygame.draw.rect(screen, pygame.Color("firebrick"), fruit_rect)
 
 pygame.init()
+pygame.mixer.init()
+
+# Start game sound effect
+startup_sound = pygame.mixer.Sound('game-start.mp3')
+startup_sound.play()
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Retro Snake Game")
 
+# Scan set up
+scan = pygame.Surface((800, 600), flags=pygame.SRCALPHA)
+for y in range(0, 600, 2):
+    pygame.draw.line(scan, (0, 0, 0, 40), (0, y), (800, y))
+
 title_font = pygame.font.Font("PressStart2P-Regular.ttf", 40)
-main_color = pygame.Color("goldenrod")
+title_color = pygame.Color("goldenrod")
+border_color = (80, 200, 80)
 
 # Animate text set up
 message = "Retro Snake Game"
@@ -62,6 +73,9 @@ while running:
     play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
     screen.fill((24, 90, 0), play_rect)
 
+    # Border
+    pygame.draw.rect(screen, border_color, play_rect, width=2)
+
     # Flicker
     if not flicker_done:
         if frame_count % flicker_interval == 0:
@@ -72,7 +86,7 @@ while running:
 
         if show_text:
             # Show label
-            title_text = title_font.render("Retro Snake Game", True, main_color)
+            title_text = title_font.render("Retro Snake Game", True, title_color)
             title_rect = title_text.get_rect(center=(800 // 2, 50))
             screen.blit(title_text, title_rect)
 
@@ -84,12 +98,13 @@ while running:
             else:
                 done = True
 
-        snip = title_font.render(message[0:count // speed], True, main_color)
+        snip = title_font.render(message[0:count // speed], True, title_color)
         snip_rect = snip.get_rect(center=(800 // 2, 50))
         screen.blit(snip, snip_rect)
 
     fruit.draw_fruit()
 
+    screen.blit(scan, (0, 0))
     pygame.display.update()
 
 pygame.quit()

@@ -1,8 +1,9 @@
 snake-game/
 │
 ├── assets/
-│   ├── food.png
-│   ├── snake_head.png
+│   ├── game-start.mp3
+│   ├── apple.png
+│   ├── snake.png
 │   └── eat_sound.wav
 │
 ├── snake_game.py
