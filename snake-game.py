@@ -24,7 +24,8 @@ class fruit:
 # Class for snake
 class snake:
     def __init__(self):
-        self.body = [Vector2(3, 10), Vector2(4, 10), Vector2(5, 10)]
+        self.body = [Vector2(3, 11), Vector2(4, 11), Vector2(5, 11), Vector2(6, 11)]
+        self.direction = Vector2(1, 0)
 
     def draw_snake(self):
         for block in self.body:
@@ -33,8 +34,17 @@ class snake:
             snake_rect = pygame.Rect(px, py, cell_size, cell_size)
             pygame.draw.rect(screen, pygame.Color("green"), snake_rect)
 
+    def move_snake(self):
+        new_head = self.body[0] + self.direction
+        self.body.insert(0, new_head)
+        self.body.pop()
+
 pygame.init()
 pygame.mixer.init()
+
+# Move
+MOVE_EVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(MOVE_EVENT, 150)
 
 # Start game sound effect
 startup_sound = pygame.mixer.Sound('game-start.mp3')
@@ -79,6 +89,17 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == MOVE_EVENT:
+            snake.move_snake()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP or event.key == pygame.K_w:
+                snake.direction = Vector2(0, -1)
+            elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                snake.direction = Vector2(-1, 0)
+            elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                snake.direction = Vector2(1, 0)
+            elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                snake.direction = Vector2(0, 1)
 
     screen.fill((15, 56, 15))
 
