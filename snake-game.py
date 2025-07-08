@@ -8,24 +8,25 @@ cell_size = 20
 max_cols = 800 // cell_size
 max_rows = (600 - grid_top) // cell_size
 
-# Class for fruit
-class fruit:
+# Class for apple
+class Apple:
     def __init__(self):
         self.x = randint(0, max_cols - 1)
         self.y = randint(0, max_rows - 1)
         self.pos = Vector2(self.x, self.y)
 
-    def draw_fruit(self):
+    def draw_apple(self):
         px = self.pos.x * cell_size
         py = grid_top + self.pos.y * cell_size
-        fruit_rect = pygame.Rect(px, py, cell_size, cell_size)
-        pygame.draw.rect(screen, pygame.Color("firebrick"), fruit_rect)
+        apple_rect = pygame.Rect(px, py, cell_size, cell_size)
+        pygame.draw.rect(screen, pygame.Color("firebrick"), apple_rect)
 
 # Class for snake
-class snake:
+class Snake:
     def __init__(self):
-        self.body = [Vector2(3, 11), Vector2(4, 11), Vector2(5, 11), Vector2(6, 11)]
+        self.body = [Vector2(6, 11), Vector2(5, 11), Vector2(4, 11), Vector2(3, 11)]
         self.direction = Vector2(1, 0)
+        self.grow = False
 
     def draw_snake(self):
         for block in self.body:
@@ -37,7 +38,32 @@ class snake:
     def move_snake(self):
         new_head = self.body[0] + self.direction
         self.body.insert(0, new_head)
-        self.body.pop()
+
+        if self.grow:
+            self.grow = False
+        else:
+            self.body.pop()
+
+# Class for game logic
+class Logic:
+    def __init__(self):
+        self.apple = Apple()
+        self.snake = Snake()
+
+    def apple_pickup(self):
+        if self.snake.body[0] == self.apple.pos:
+            self.snake.grow = True
+            self.apple = Apple()
+
+    def check_collisions(self):
+        head = self.snake.body[0]
+        if head.x < 0 or head.x >= max_cols or head.y < 0 or head.y >= max_rows:
+            return True
+
+        if head in self.snake.body[1:]:
+            return True
+
+        return False
 
 pygame.init()
 pygame.mixer.init()
@@ -77,8 +103,8 @@ flicker_done = False
 
 clock = pygame.time.Clock()
 
-fruit = fruit()
-snake = snake()
+# Class
+logic = Logic()
 
 # Game loop
 running = True
@@ -90,16 +116,19 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == MOVE_EVENT:
-            snake.move_snake()
+            logic.snake.move_snake()
+            logic.apple_pickup()
+            if logic.check_collisions():
+                running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP or event.key == pygame.K_w:
-                snake.direction = Vector2(0, -1)
+                logic.snake.direction = Vector2(0, -1)
             elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                snake.direction = Vector2(-1, 0)
+                logic.snake.direction = Vector2(-1, 0)
             elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                snake.direction = Vector2(1, 0)
+                logic.snake.direction = Vector2(1, 0)
             elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                snake.direction = Vector2(0, 1)
+                logic.snake.direction = Vector2(0, 1)
 
     screen.fill((15, 56, 15))
 
@@ -136,8 +165,8 @@ while running:
         snip_rect = snip.get_rect(center=(800 // 2, 50))
         screen.blit(snip, snip_rect)
 
-    fruit.draw_fruit()
-    snake.draw_snake()
+    logic.apple.draw_apple()
+    logic.snake.draw_snake()
 
     screen.blit(scan, (0, 0))
     pygame.display.update()
