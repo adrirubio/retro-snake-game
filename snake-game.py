@@ -8,9 +8,6 @@ cell_size = 20
 max_cols = 800 // cell_size
 max_rows = (600 - grid_top) // cell_size
 
-pygame.init()
-pygame.mixer.init()
-
 # Class for apple
 class Apple:
     def __init__(self):
@@ -19,10 +16,10 @@ class Apple:
         self.pos = Vector2(self.x, self.y)
 
     def draw_apple(self):
-        px = self.pos.x * cell_size
-        py = grid_top + self.pos.y * cell_size
-        apple_rect = pygame.Rect(px, py, cell_size, cell_size)
-        pygame.draw.rect(screen, pygame.Color("firebrick"), apple_rect)
+        offset = (cell_size - apple_size) // 2
+        px = self.pos.x * cell_size + offset
+        py = grid_top + self.pos.y * cell_size + offset
+        screen.blit(apple_img, (px, py))
 
 # Class for snake
 class Snake:
@@ -47,9 +44,6 @@ class Snake:
         else:
             self.body.pop()
 
-# Coin sound
-coin_sound = pygame.mixer.Sound("assets/coin.mp3")
-
 # Class for game logic
 class Logic:
     def __init__(self):
@@ -72,16 +66,27 @@ class Logic:
 
         return False
 
-# Move
-MOVE_EVENT = pygame.USEREVENT + 1
-pygame.time.set_timer(MOVE_EVENT, 150)
+pygame.init()
+pygame.mixer.init()
+
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Retro Snake Game")
 
 # Start game sound effect
 startup_sound = pygame.mixer.Sound('assets/game-start.mp3')
 startup_sound.play()
 
-screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Retro Snake Game")
+# Coin sound effect
+coin_sound = pygame.mixer.Sound("assets/coin.mp3")
+
+# Apple imgage
+apple_size = int(cell_size * 3.5)
+apple_img = pygame.image.load("assets/apple.png").convert_alpha()
+apple_img = pygame.transform.smoothscale(apple_img, (apple_size, apple_size))
+
+# Move
+MOVE_EVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(MOVE_EVENT, 150)
 
 # Scan set up
 scan = pygame.Surface((800, 600), flags=pygame.SRCALPHA)
