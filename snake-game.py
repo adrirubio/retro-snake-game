@@ -128,15 +128,22 @@ while running:
                 collision = True
                 running = False
                 break
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP or event.key == pygame.K_w:
-                logic.snake.direction = Vector2(0, -1)
-            elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                logic.snake.direction = Vector2(-1, 0)
-            elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                logic.snake.direction = Vector2(1, 0)
-            elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                logic.snake.direction = Vector2(0, 1)
+        elif event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_UP, pygame.K_w):
+                if logic.snake.direction.y != 1:
+                    logic.snake.direction = Vector2(0, -1)
+
+            elif event.key in (pygame.K_DOWN, pygame.K_s):
+                if logic.snake.direction.y != -1:
+                    logic.snake.direction = Vector2(0, 1)
+
+            elif event.key in (pygame.K_LEFT, pygame.K_a):
+                if logic.snake.direction.x != 1:
+                    logic.snake.direction = Vector2(-1, 0)
+
+            elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                if logic.snake.direction.x != -1:
+                    logic.snake.direction = Vector2(1, 0)
 
     if collision:
         continue
