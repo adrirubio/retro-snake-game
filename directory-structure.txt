@@ -4,7 +4,7 @@ snake-game/
 │   ├── game-start.mp3
 │   ├── apple.png
 │   ├── snake.png
-│   └── eat_sound.wav
+│   └── coin.mp3
 │
 ├── snake_game.py
 ├── README.md

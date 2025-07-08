@@ -8,6 +8,9 @@ cell_size = 20
 max_cols = 800 // cell_size
 max_rows = (600 - grid_top) // cell_size
 
+pygame.init()
+pygame.mixer.init()
+
 # Class for apple
 class Apple:
     def __init__(self):
@@ -44,6 +47,9 @@ class Snake:
         else:
             self.body.pop()
 
+# Coin sound
+coin_sound = pygame.mixer.Sound("assets/coin.mp3")
+
 # Class for game logic
 class Logic:
     def __init__(self):
@@ -53,6 +59,7 @@ class Logic:
     def apple_pickup(self):
         if self.snake.body[0] == self.apple.pos:
             self.snake.grow = True
+            coin_sound.play()
             self.apple = Apple()
 
     def check_collisions(self):
@@ -65,15 +72,12 @@ class Logic:
 
         return False
 
-pygame.init()
-pygame.mixer.init()
-
 # Move
 MOVE_EVENT = pygame.USEREVENT + 1
 pygame.time.set_timer(MOVE_EVENT, 150)
 
 # Start game sound effect
-startup_sound = pygame.mixer.Sound('game-start.mp3')
+startup_sound = pygame.mixer.Sound('assets/game-start.mp3')
 startup_sound.play()
 
 screen = pygame.display.set_mode((800, 600))
@@ -111,6 +115,7 @@ running = True
 while running:
     clock.tick(60)
     frame_count += 1
+    collision = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -118,8 +123,11 @@ while running:
         if event.type == MOVE_EVENT:
             logic.snake.move_snake()
             logic.apple_pickup()
-            if logic.check_collisions():
+            collision = logic.check_collisions()
+            if collision:
+                collision = True
                 running = False
+                break
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP or event.key == pygame.K_w:
                 logic.snake.direction = Vector2(0, -1)
@@ -129,6 +137,9 @@ while running:
                 logic.snake.direction = Vector2(1, 0)
             elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
                 logic.snake.direction = Vector2(0, 1)
+
+    if collision:
+        continue
 
     screen.fill((15, 56, 15))
 
