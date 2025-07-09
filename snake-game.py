@@ -4,7 +4,7 @@ from pygame.math import Vector2
 from random import randint
 
 grid_top  = 100
-cell_size = 29
+cell_size = 30
 max_cols = 800 // cell_size
 max_rows = (600 - grid_top) // cell_size
 
@@ -107,6 +107,10 @@ sheet = pygame.image.load("assets/snake_sheet.png").convert_alpha()
 tile = sheet.get_width() // 3
 tiles = [[None]*3 for _ in range(3)]
 
+# Background
+bg_play = pygame.image.load("assets/background.png").convert()
+bg_play = pygame.transform.smoothscale(bg_play, (800, 600 - grid_top))
+
 for r in range(3):
     for c in range(3):
         rect = pygame.Rect(c*tile, r*tile, tile, tile)
@@ -160,7 +164,7 @@ for y in range(0, 600, 2):
 
 title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
 title_color = pygame.Color("goldenrod")
-border_color = (80, 200, 80)
+border_color = (80, 250, 80)
 
 # Animate text set up
 message = "Retro Snake Game"
@@ -222,7 +226,7 @@ while running:
 
     # Color background
     play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
-    screen.fill((24, 90, 0), play_rect)
+    screen.blit(bg_play, play_rect.topleft)
 
     # Border
     pygame.draw.rect(screen, border_color, play_rect, width=2)
