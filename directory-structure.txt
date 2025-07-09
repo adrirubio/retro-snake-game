@@ -3,8 +3,10 @@ snake-game/
 ├── assets/
 │   ├── game-start.mp3
 │   ├── apple.png
-│   ├── snake.png
-│   └── coin.mp3
+│   ├── snake_sheet.png
+│   ├── coin.mp3
+│   └── background.png
+│
 │
 ├── snake_game.py
 ├── README.md

@@ -4,7 +4,7 @@ from pygame.math import Vector2
 from random import randint
 
 grid_top  = 100
-cell_size = 20
+cell_size = 29
 max_cols = 800 // cell_size
 max_rows = (600 - grid_top) // cell_size
 
@@ -29,11 +29,29 @@ class Snake:
         self.grow = False
 
     def draw_snake(self):
-        for block in self.body:
+        for i, block in enumerate(self.body):
             px = block.x * cell_size
             py = grid_top + block.y * cell_size
-            snake_rect = pygame.Rect(px, py, cell_size, cell_size)
-            pygame.draw.rect(screen, pygame.Color("green"), snake_rect)
+
+            if i == 0:
+                img = HEAD[tuple(self.direction)]
+
+            elif i == len(self.body)-1:
+                tail_dir = self.body[-2] - self.body[-1]
+                img = TAIL[tuple(tail_dir)]
+
+            else:
+                prev_vec = self.body[i-1] - block
+                next_vec = self.body[i+1] - block
+
+                if prev_vec.x == next_vec.x:
+                    img = body_v
+                elif prev_vec.y == next_vec.y:
+                    img = body_h
+                else:
+                    img = CORNERS[(tuple(prev_vec), tuple(next_vec))]
+
+            screen.blit(img, (px, py))
 
     def move_snake(self):
         new_head = self.body[0] + self.direction
@@ -80,7 +98,7 @@ startup_sound.play()
 coin_sound = pygame.mixer.Sound("assets/coin.mp3")
 
 # Apple imgage
-apple_size = int(cell_size * 3.5)
+apple_size = int(cell_size * 3)
 apple_img = pygame.image.load("assets/apple.png").convert_alpha()
 apple_img = pygame.transform.smoothscale(apple_img, (apple_size, apple_size))
 
@@ -108,25 +126,28 @@ body_straight = tiles[2][2]
 
 # Lookup tables
 HEAD = {
-    Vector2(0, -1): head_up,
-    Vector2(1, 0): pygame.transform.rotate(head_up, -90), # right
-    Vector2(0, 1): pygame.transform.flip(head_up, False, True), # down
-    Vector2(-1, 0): pygame.transform.rotate(head_up, 90) # left
+    (0, -1): head_up,
+    (1, 0): pygame.transform.rotate(head_up, -90), # right
+    (0, 1): pygame.transform.flip(head_up, False, True), # down
+    (-1, 0): pygame.transform.rotate(head_up, 90) # left
 }
 
 TAIL = {
-    Vector2(0, -1): tail_up,
-    Vector2(1, 0): pygame.transform.rotate(tail_up, -90), # right
-    Vector2(0, 1): pygame.transform.flip(tail_up, False, False),# down
-    Vector2(-1, 0): pygame.transform.rotate(tail_up, 90) # left
+    (0, -1): tail_up,
+    (1, 0): pygame.transform.rotate(tail_up, -90), # right
+    (0, 1): pygame.transform.flip(tail_up, False, True), # down
+    (-1, 0): pygame.transform.rotate(tail_up, 90) # left
 }
 
 CORNERS = {
-    ((-1,0), (0,-1)): corner_tl, ((0,-1), (-1,0)): corner_tl,
-    ((1,0), (0,-1)): corner_tr, ((-1,0), (0,1)): corner_tr,
-    ((-1,0), (0,1)): corner_bl, ((0,1), (-1,0)): corner_bl,
-    ((1,0), (0,1)): corner_br, ((0,1), (1,0)): corner_br
+    ((-1,0), (0,-1)): corner_br, ((0,-1), (-1,0)): corner_br,
+    (( 1,0), (0,-1)): corner_bl, ((0,-1), ( 1,0)): corner_bl,
+    ((-1,0), (0, 1)): corner_tr, ((0, 1), (-1,0)): corner_tr,
+    (( 1,0), (0, 1)): corner_tl, ((0, 1), ( 1,0)): corner_tl
 }
+
+body_v = body_straight
+body_h = pygame.transform.rotate(body_straight, 90)
 
 # Move
 MOVE_EVENT = pygame.USEREVENT + 1
