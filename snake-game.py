@@ -84,6 +84,50 @@ apple_size = int(cell_size * 3.5)
 apple_img = pygame.image.load("assets/apple.png").convert_alpha()
 apple_img = pygame.transform.smoothscale(apple_img, (apple_size, apple_size))
 
+# Snake sheet
+sheet = pygame.image.load("assets/snake_sheet.png").convert_alpha()
+tile = sheet.get_width() // 3
+tiles = [[None]*3 for _ in range(3)]
+
+for r in range(3):
+    for c in range(3):
+        rect = pygame.Rect(c*tile, r*tile, tile, tile)
+        tiles[r][c] = sheet.subsurface(rect)
+
+tiles = [[pygame.transform.smoothscale(tile, (cell_size, cell_size))
+          for tile in row]
+         for row in tiles]
+
+head_up = tiles[0][0]
+corner_tl = tiles[0][1]
+corner_tr = tiles[0][2]
+corner_bl = tiles[1][1]
+corner_br = tiles[1][2]
+tail_up = tiles[2][1]
+body_straight = tiles[2][2]
+
+# Lookup tables
+HEAD = {
+    Vector2(0, -1): head_up,
+    Vector2(1, 0): pygame.transform.rotate(head_up, -90), # right
+    Vector2(0, 1): pygame.transform.flip(head_up, False, True), # down
+    Vector2(-1, 0): pygame.transform.rotate(head_up, 90) # left
+}
+
+TAIL = {
+    Vector2(0, -1): tail_up,
+    Vector2(1, 0): pygame.transform.rotate(tail_up, -90), # right
+    Vector2(0, 1): pygame.transform.flip(tail_up, False, False),# down
+    Vector2(-1, 0): pygame.transform.rotate(tail_up, 90) # left
+}
+
+CORNERS = {
+    ((-1,0), (0,-1)): corner_tl, ((0,-1), (-1,0)): corner_tl,
+    ((1,0), (0,-1)): corner_tr, ((-1,0), (0,1)): corner_tr,
+    ((-1,0), (0,1)): corner_bl, ((0,1), (-1,0)): corner_bl,
+    ((1,0), (0,1)): corner_br, ((0,1), (1,0)): corner_br
+}
+
 # Move
 MOVE_EVENT = pygame.USEREVENT + 1
 pygame.time.set_timer(MOVE_EVENT, 150)
@@ -93,7 +137,7 @@ scan = pygame.Surface((800, 600), flags=pygame.SRCALPHA)
 for y in range(0, 600, 2):
     pygame.draw.line(scan, (0, 0, 0, 40), (0, y), (800, y))
 
-title_font = pygame.font.Font("PressStart2P-Regular.ttf", 40)
+title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
 title_color = pygame.Color("goldenrod")
 border_color = (80, 200, 80)
 
