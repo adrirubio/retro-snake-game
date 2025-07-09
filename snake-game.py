@@ -15,11 +15,11 @@ class Apple:
         self.y = randint(0, max_rows - 1)
         self.pos = Vector2(self.x, self.y)
 
-    def draw_apple(self):
+    def draw_apple(self, surf):
         offset = (cell_size - apple_size) // 2
         px = self.pos.x * cell_size + offset
         py = grid_top + self.pos.y * cell_size + offset
-        screen.blit(apple_img, (px, py))
+        surf.blit(apple_img, (px, py))
 
 # Class for snake
 class Snake:
@@ -28,7 +28,7 @@ class Snake:
         self.direction = Vector2(1, 0)
         self.grow = False
 
-    def draw_snake(self):
+    def draw_snake(self, surf):
         for i, block in enumerate(self.body):
             px = block.x * cell_size
             py = grid_top + block.y * cell_size
@@ -51,7 +51,7 @@ class Snake:
                 else:
                     img = CORNERS[(tuple(prev_vec), tuple(next_vec))]
 
-            screen.blit(img, (px, py))
+            surf.blit(img, (px, py))
 
     def move_snake(self):
         new_head = self.body[0] + self.direction
@@ -84,23 +84,33 @@ class Logic:
 
         return False
 
+def crt_blit(src, dest):
+    w, h = src.get_size()
+    crt = pygame.transform.scale(src, (int(w * 1.01), int(h * 1.04)))
+
+    for y in range(h):
+        curve = (y - h / 2) / (h / 2)
+        offset = int(4 * curve * curve)
+        dest.blit(crt, (-offset, y), area=pygame.Rect(0, y, w, 1))
+
 pygame.init()
 pygame.mixer.init()
 
 screen = pygame.display.set_mode((800, 600))
+frame = pygame.Surface(screen.get_size()).convert()
 pygame.display.set_caption("Retro Snake Game")
 
 # Start game sound effect
-startup_sound = pygame.mixer.Sound('assets/game-start.mp3')
+startup_sound = pygame.mixer.Sound('assets/game-start.wav')
 startup_sound.play()
 
 # Coin sound effect
-coin_sound = pygame.mixer.Sound("assets/coin.mp3")
+coin_sound = pygame.mixer.Sound("assets/coin.wav")
 
 # Apple imgage
 apple_size = int(cell_size * 3)
 apple_img = pygame.image.load("assets/apple.png").convert_alpha()
-apple_img = pygame.transform.smoothscale(apple_img, (apple_size, apple_size))
+apple_img = pygame.transform.scale(apple_img, (apple_size, apple_size))
 
 # Snake sheet
 sheet = pygame.image.load("assets/snake_sheet.png").convert_alpha()
@@ -109,14 +119,14 @@ tiles = [[None]*3 for _ in range(3)]
 
 # Background
 bg_play = pygame.image.load("assets/background.png").convert()
-bg_play = pygame.transform.smoothscale(bg_play, (800, 600 - grid_top))
+bg_play = pygame.transform.scale(bg_play, (800, 600 - grid_top))
 
 for r in range(3):
     for c in range(3):
         rect = pygame.Rect(c*tile, r*tile, tile, tile)
         tiles[r][c] = sheet.subsurface(rect)
 
-tiles = [[pygame.transform.smoothscale(tile, (cell_size, cell_size))
+tiles = [[pygame.transform.scale(tile, (cell_size, cell_size))
           for tile in row]
          for row in tiles]
 
@@ -179,10 +189,10 @@ show_text = True
 frame_count = 0
 flicker_done = False
 
-clock = pygame.time.Clock()
-
 # Class
 logic = Logic()
+
+clock = pygame.time.Clock()
 
 # Game loop
 running = True
@@ -222,11 +232,13 @@ while running:
     if collision:
         continue
 
-    screen.fill((15, 56, 15))
-
     # Color background
     play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
-    screen.blit(bg_play, play_rect.topleft)
+
+    # Draw to frame
+    frame.fill((15, 56, 15))
+    play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
+    frame.blit(bg_play, play_rect.topleft)
 
     # Border
     pygame.draw.rect(screen, border_color, play_rect, width=2)
@@ -236,29 +248,26 @@ while running:
         if frame_count % flicker_interval == 0:
             show_text = not show_text
         if frame_count >= flicker_duration:
-            flicker_done = True
-            show_text = True
+            flicker_done, show_text = True, True
 
         if show_text:
-            # Show label
             title_text = title_font.render("Retro Snake Game", True, title_color)
-            title_rect = title_text.get_rect(center=(800 // 2, 50))
-            screen.blit(title_text, title_rect)
-
+            title_rect = title_text.get_rect(center=(400, 50))
+            frame.blit(title_text, title_rect)
     else:
-        # Animate typing effect
         if not done:
-            if count < speed * len(message):
-                count += 1
-            else:
+            count = min(count + 1, speed * len(message))
+            if count == speed * len(message):
                 done = True
+        snip = title_font.render(message[:count // speed], True, title_color)
+        snip_rect = snip.get_rect(center=(400, 50))
+        frame.blit(snip, snip_rect)
 
-        snip = title_font.render(message[0:count // speed], True, title_color)
-        snip_rect = snip.get_rect(center=(800 // 2, 50))
-        screen.blit(snip, snip_rect)
+    logic.apple.draw_apple(frame)
+    logic.snake.draw_snake(frame)
 
-    logic.apple.draw_apple()
-    logic.snake.draw_snake()
+    # Blit
+    crt_blit(frame, screen)
 
     screen.blit(scan, (0, 0))
     pygame.display.update()

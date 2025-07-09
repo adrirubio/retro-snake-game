@@ -1,10 +1,10 @@
 snake-game/
 │
 ├── assets/
-│   ├── game-start.mp3
+│   ├── game-start.wav
 │   ├── apple.png
 │   ├── snake_sheet.png
-│   ├── coin.mp3
+│   ├── coin.wav
 │   └── background.png
 │
 │
