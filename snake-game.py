@@ -4,9 +4,9 @@ from pygame.math import Vector2
 from random import randint
 
 grid_top  = 100
-cell_size = 40
-max_cols = 800 // cell_size + 1
-max_rows = (600 - grid_top) // cell_size
+cell_size = 32
+max_cols = 800 // cell_size
+max_rows = (600 - grid_top) // cell_size + 1
 
 # Class for apple
 class Apple:
@@ -105,6 +105,9 @@ bg_sound      = pygame.mixer.Sound("assets/sound.wav")
 
 # Coin sound effect
 coin_sound = pygame.mixer.Sound("assets/coin.wav")
+
+# Game over sound effect
+game_over_sfx = pygame.mixer.Sound("assets/game_over.wav")
 
 # Apple imgages
 apple_size  = int(cell_size * 3.3)
@@ -208,6 +211,7 @@ bg_started = False
 
 # Class
 logic = Logic()
+game_over = False
 
 clock = pygame.time.Clock()
 # Game loop
@@ -221,13 +225,23 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == MOVE_EVENT:
-            logic.snake.move_snake()
-            logic.apple_pickup()
-            collision = logic.check_collisions()
-            if collision:
-                collision = True
-                running = False
-                break
+            if not game_over:
+                # Stop snake from moving
+                snake = logic.snake
+                next_head = snake.body[0] + snake.direction
+
+                hit_wall = (next_head.x < 0 or next_head.x >= max_cols or
+                            next_head.y < 0 or next_head.y >= max_rows)
+                hit_self = next_head in snake.body
+
+                if hit_wall or hit_self:
+                    game_over = True
+                    bg_sound.stop()
+                    game_over_sfx.play()
+                else:
+                    snake.move_snake()
+                    logic.apple_pickup()
+
         elif event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_UP, pygame.K_w):
                 if logic.snake.direction.y != 1:
@@ -245,9 +259,10 @@ while running:
                 if logic.snake.direction.x != -1:
                     logic.snake.direction = Vector2(1, 0)
 
-    if (not bg_started) and (not intro_chan.get_busy()):
-        bg_sound.play(loops=-1)
-        bg_started = True
+    if not game_over:
+        if (not bg_started) and (not intro_chan.get_busy()):
+            bg_sound.play(loops=-1)
+            bg_started = True
 
     if collision:
         continue
