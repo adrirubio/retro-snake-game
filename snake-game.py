@@ -4,23 +4,31 @@ from pygame.math import Vector2
 from random import randint
 
 grid_top  = 100
-cell_size = 31
+cell_size = 40
 max_cols = 800 // cell_size + 1
 max_rows = (600 - grid_top) // cell_size
 
 # Class for apple
 class Apple:
-    def __init__(self):
-        self.x = randint(0, max_cols - 1)
-        self.y = randint(0, max_rows - 1)
-        self.pos = Vector2(self.x, self.y)
+    def __init__(self, occupied):
+        self.reposition(occupied)
+
+    def reposition(self, occupied):
+        self.pos = Vector2(randint(0, max_cols -1),
+                           randint(0, max_rows -1))
+
+        # Avoid overlap
+        while self.pos in occupied:
+            self.pos.update(randint(0, max_cols - 1),
+                            randint(0, max_rows - 1))
+            print("Avoided overlap successfully")
 
     def draw_apple(self):
-            offset = (cell_size - apple_size) // 2
-            px = self.pos.x * cell_size + offset
-            py = grid_top + self.pos.y * cell_size + offset
-            idx = (pygame.time.get_ticks() // 120) % 2
-            screen.blit(apple_frames[idx], (px, py))
+        offset = (cell_size - apple_size) // 2
+        px = self.pos.x * cell_size + offset
+        py = grid_top + self.pos.y * cell_size + offset
+        idx = (pygame.time.get_ticks() // 120) % 2
+        screen.blit(apple_frames[idx], (px, py))
 
 # Class for snake
 class Snake:
@@ -66,14 +74,14 @@ class Snake:
 # Class for game logic
 class Logic:
     def __init__(self):
-        self.apple = Apple()
         self.snake = Snake()
+        self.apple = Apple(self.snake.body)
 
     def apple_pickup(self):
         if self.snake.body[0] == self.apple.pos:
             self.snake.grow = True
             coin_sound.play()
-            self.apple = Apple()
+            self.apple.reposition(self.snake.body)
 
     def check_collisions(self):
         head = self.snake.body[0]
