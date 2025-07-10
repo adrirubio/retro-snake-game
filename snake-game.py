@@ -4,8 +4,8 @@ from pygame.math import Vector2
 from random import randint
 
 grid_top  = 100
-cell_size = 30
-max_cols = 800 // cell_size
+cell_size = 31
+max_cols = 800 // cell_size + 1
 max_rows = (600 - grid_top) // cell_size
 
 # Class for apple
@@ -15,11 +15,12 @@ class Apple:
         self.y = randint(0, max_rows - 1)
         self.pos = Vector2(self.x, self.y)
 
-    def draw_apple(self, surf):
-        offset = (cell_size - apple_size) // 2
-        px = self.pos.x * cell_size + offset
-        py = grid_top + self.pos.y * cell_size + offset
-        surf.blit(apple_img, (px, py))
+    def draw_apple(self):
+            offset = (cell_size - apple_size) // 2
+            px = self.pos.x * cell_size + offset
+            py = grid_top + self.pos.y * cell_size + offset
+            idx = (pygame.time.get_ticks() // 120) % 2
+            screen.blit(apple_frames[idx], (px, py))
 
 # Class for snake
 class Snake:
@@ -28,7 +29,7 @@ class Snake:
         self.direction = Vector2(1, 0)
         self.grow = False
 
-    def draw_snake(self, surf):
+    def draw_snake(self):
         for i, block in enumerate(self.body):
             px = block.x * cell_size
             py = grid_top + block.y * cell_size
@@ -51,7 +52,7 @@ class Snake:
                 else:
                     img = CORNERS[(tuple(prev_vec), tuple(next_vec))]
 
-            surf.blit(img, (px, py))
+            screen.blit(img, (px, py))
 
     def move_snake(self):
         new_head = self.body[0] + self.direction
@@ -84,33 +85,37 @@ class Logic:
 
         return False
 
-def crt_blit(src, dest):
-    w, h = src.get_size()
-    crt = pygame.transform.scale(src, (int(w * 1.01), int(h * 1.04)))
-
-    for y in range(h):
-        curve = (y - h / 2) / (h / 2)
-        offset = int(4 * curve * curve)
-        dest.blit(crt, (-offset, y), area=pygame.Rect(0, y, w, 1))
-
 pygame.init()
 pygame.mixer.init()
 
 screen = pygame.display.set_mode((800, 600))
-frame = pygame.Surface(screen.get_size()).convert()
 pygame.display.set_caption("Retro Snake Game")
 
-# Start game sound effect
-startup_sound = pygame.mixer.Sound('assets/game-start.wav')
-startup_sound.play()
+# Load sounds
+startup_sound = pygame.mixer.Sound("assets/game_start.wav")
+bg_sound      = pygame.mixer.Sound("assets/sound.wav")
 
 # Coin sound effect
 coin_sound = pygame.mixer.Sound("assets/coin.wav")
 
-# Apple imgage
-apple_size = int(cell_size * 3)
-apple_img = pygame.image.load("assets/apple.png").convert_alpha()
-apple_img = pygame.transform.scale(apple_img, (apple_size, apple_size))
+# Apple imgages
+apple_size  = int(cell_size * 3.3)
+small_scale = 0.75
+
+# big apple
+apple_big = pygame.image.load("assets/apple.png").convert_alpha()
+apple_big = pygame.transform.scale(apple_big, (apple_size, apple_size))
+
+# small apple
+apple_small_raw = pygame.image.load("assets/small_apple.png").convert_alpha()
+w  = int(apple_size * small_scale)
+h  = int(apple_size * small_scale)
+apple_small_raw = pygame.transform.scale(apple_small_raw, (w, h))
+
+apple_small = pygame.Surface((apple_size, apple_size), pygame.SRCALPHA)
+apple_small.blit(apple_small_raw, ((apple_size - w)//2, (apple_size - h)//2))
+
+apple_frames = [apple_big, apple_small]
 
 # Snake sheet
 sheet = pygame.image.load("assets/snake_sheet.png").convert_alpha()
@@ -170,7 +175,7 @@ pygame.time.set_timer(MOVE_EVENT, 150)
 # Scan set up
 scan = pygame.Surface((800, 600), flags=pygame.SRCALPHA)
 for y in range(0, 600, 2):
-    pygame.draw.line(scan, (0, 0, 0, 40), (0, y), (800, y))
+    pygame.draw.line(scan, (0, 0, 0, 100), (0, y), (800, y))
 
 title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
 title_color = pygame.Color("goldenrod")
@@ -189,11 +194,14 @@ show_text = True
 frame_count = 0
 flicker_done = False
 
+# Play startup sound
+intro_chan = startup_sound.play()
+bg_started = False
+
 # Class
 logic = Logic()
 
 clock = pygame.time.Clock()
-
 # Game loop
 running = True
 while running:
@@ -229,16 +237,18 @@ while running:
                 if logic.snake.direction.x != -1:
                     logic.snake.direction = Vector2(1, 0)
 
+    if (not bg_started) and (not intro_chan.get_busy()):
+        bg_sound.play(loops=-1)
+        bg_started = True
+
     if collision:
         continue
 
+    screen.fill((15, 56, 15))
+
     # Color background
     play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
-
-    # Draw to frame
-    frame.fill((15, 56, 15))
-    play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
-    frame.blit(bg_play, play_rect.topleft)
+    screen.blit(bg_play, play_rect.topleft)
 
     # Border
     pygame.draw.rect(screen, border_color, play_rect, width=2)
@@ -248,26 +258,29 @@ while running:
         if frame_count % flicker_interval == 0:
             show_text = not show_text
         if frame_count >= flicker_duration:
-            flicker_done, show_text = True, True
+            flicker_done = True
+            show_text = True
 
         if show_text:
+            # Show label
             title_text = title_font.render("Retro Snake Game", True, title_color)
-            title_rect = title_text.get_rect(center=(400, 50))
-            frame.blit(title_text, title_rect)
+            title_rect = title_text.get_rect(center=(800 // 2, 50))
+            screen.blit(title_text, title_rect)
+
     else:
+        # Animate typing effect
         if not done:
-            count = min(count + 1, speed * len(message))
-            if count == speed * len(message):
+            if count < speed * len(message):
+                count += 1
+            else:
                 done = True
-        snip = title_font.render(message[:count // speed], True, title_color)
-        snip_rect = snip.get_rect(center=(400, 50))
-        frame.blit(snip, snip_rect)
 
-    logic.apple.draw_apple(frame)
-    logic.snake.draw_snake(frame)
+        snip = title_font.render(message[0:count // speed], True, title_color)
+        snip_rect = snip.get_rect(center=(800 // 2, 50))
+        screen.blit(snip, snip_rect)
 
-    # Blit
-    crt_blit(frame, screen)
+    logic.apple.draw_apple()
+    logic.snake.draw_snake()
 
     screen.blit(scan, (0, 0))
     pygame.display.update()

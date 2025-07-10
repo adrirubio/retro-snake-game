@@ -1,13 +1,16 @@
 snake-game/
 │
 ├── assets/
-│   ├── game-start.wav
+│   ├── game_start.wav
 │   ├── apple.png
+│   ├── small_apple.png
 │   ├── snake_sheet.png
 │   ├── coin.wav
-│   └── background.png
+│   ├── background.png
+│   └── sound.wav
 │
 │
-├── snake_game.py
+│
+├── snake-game.py
 ├── README.md
 └── requirements.txt
