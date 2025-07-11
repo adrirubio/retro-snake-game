@@ -3,6 +3,9 @@ import pygame, sys
 from pygame.math import Vector2
 from random import randint
 
+# State
+state = "title"
+
 grid_top  = 100
 cell_size = 32
 max_cols = 800 // cell_size
@@ -99,9 +102,12 @@ pygame.mixer.init()
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Retro Snake Game")
 
+# Tile startup sound
+title_sound = pygame.mixer.Sound("assets/title_sound.wav")
+
 # Load sounds
 startup_sound = pygame.mixer.Sound("assets/game_start.wav")
-bg_sound      = pygame.mixer.Sound("assets/sound.wav")
+bg_sound = pygame.mixer.Sound("assets/sound.wav")
 
 # Coin sound effect
 coin_sound = pygame.mixer.Sound("assets/coin.wav")
@@ -110,7 +116,7 @@ coin_sound = pygame.mixer.Sound("assets/coin.wav")
 game_over_sfx = pygame.mixer.Sound("assets/game_over.wav")
 
 # Apple imgages
-apple_size  = int(cell_size * 3.3)
+apple_size = int(cell_size * 3.3)
 small_scale = 0.75
 
 # big apple
@@ -188,7 +194,9 @@ scan = pygame.Surface((800, 600), flags=pygame.SRCALPHA)
 for y in range(0, 600, 2):
     pygame.draw.line(scan, (0, 0, 0, 100), (0, y), (800, y))
 
+# Fonts
 title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
+enter_coin_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 30)
 title_color = pygame.Color("goldenrod")
 border_color = (80, 250, 80)
 
@@ -224,86 +232,109 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == MOVE_EVENT:
-            if not game_over:
-                # Stop snake from moving
-                snake = logic.snake
-                next_head = snake.body[0] + snake.direction
+        if state == "title":
+            if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN,
+                                                              pygame.K_KP_ENTER):
+                # Start game
+                title_sound.play()
+                state = "playing"
 
-                hit_wall = (next_head.x < 0 or next_head.x >= max_cols or
-                            next_head.y < 0 or next_head.y >= max_rows)
-                hit_self = next_head in snake.body
+            continue
 
-                if hit_wall or hit_self:
-                    game_over = True
-                    bg_sound.stop()
-                    game_over_sfx.play()
-                else:
-                    snake.move_snake()
-                    logic.apple_pickup()
+        elif state == "playing":
+            if event.type == MOVE_EVENT:
+                if not game_over:
+                    # Stop snake from moving
+                    snake = logic.snake
+                    next_head = snake.body[0] + snake.direction
 
-        elif event.type == pygame.KEYDOWN:
-            if event.key in (pygame.K_UP, pygame.K_w):
-                if logic.snake.direction.y != 1:
-                    logic.snake.direction = Vector2(0, -1)
+                    hit_wall = (next_head.x < 0 or next_head.x >= max_cols or
+                                next_head.y < 0 or next_head.y >= max_rows)
+                    hit_self = next_head in snake.body
 
-            elif event.key in (pygame.K_DOWN, pygame.K_s):
-                if logic.snake.direction.y != -1:
-                    logic.snake.direction = Vector2(0, 1)
+                    if hit_wall or hit_self:
+                        game_over = True
+                        bg_sound.stop()
+                        game_over_sfx.play()
+                    else:
+                        snake.move_snake()
+                        logic.apple_pickup()
 
-            elif event.key in (pygame.K_LEFT, pygame.K_a):
-                if logic.snake.direction.x != 1:
-                    logic.snake.direction = Vector2(-1, 0)
+            elif event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_UP, pygame.K_w):
+                    if logic.snake.direction.y != 1:
+                        logic.snake.direction = Vector2(0, -1)
 
-            elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                if logic.snake.direction.x != -1:
-                    logic.snake.direction = Vector2(1, 0)
+                elif event.key in (pygame.K_DOWN, pygame.K_s):
+                    if logic.snake.direction.y != -1:
+                        logic.snake.direction = Vector2(0, 1)
 
-    if not game_over:
+                elif event.key in (pygame.K_LEFT, pygame.K_a):
+                    if logic.snake.direction.x != 1:
+                        logic.snake.direction = Vector2(-1, 0)
+
+                elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                    if logic.snake.direction.x != -1:
+                        logic.snake.direction = Vector2(1, 0)
+
+    # States
+    if state == "playing" and not game_over:
         if (not bg_started) and (not intro_chan.get_busy()):
             bg_sound.play(loops=-1)
             bg_started = True
 
-    if collision:
-        continue
-
     screen.fill((15, 56, 15))
 
-    # Color background
-    play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
-    screen.blit(bg_play, play_rect.topleft)
+    if state == "title":
+        screen.fill((15, 56, 15))
+        title = title_font.render("Retro Snake Game", True, title_color)
+        prompt = enter_coin_font.render("Enter Coin (press ENTER)", True, (57, 255, 20))
+        screen.blit(title, title.get_rect(center=(400, 150)))
+        screen.blit(prompt, prompt.get_rect(center=(400, 320)))
 
-    # Border
-    pygame.draw.rect(screen, border_color, play_rect, width=2)
+        # Title border
+        pygame.draw.rect(screen, border_color, , width=2)
 
-    # Flicker
-    if not flicker_done:
-        if frame_count % flicker_interval == 0:
-            show_text = not show_text
-        if frame_count >= flicker_duration:
-            flicker_done = True
-            show_text = True
 
-        if show_text:
-            # Show label
-            title_text = title_font.render("Retro Snake Game", True, title_color)
-            title_rect = title_text.get_rect(center=(800 // 2, 50))
-            screen.blit(title_text, title_rect)
+    elif state == "playing":
+        if collision:
+            continue
 
-    else:
-        # Animate typing effect
-        if not done:
-            if count < speed * len(message):
-                count += 1
-            else:
-                done = True
+        # Color background
+        play_rect = pygame.Rect(0, grid_top, 800, 600 - grid_top)
+        screen.blit(bg_play, play_rect.topleft)
 
-        snip = title_font.render(message[0:count // speed], True, title_color)
-        snip_rect = snip.get_rect(center=(800 // 2, 50))
-        screen.blit(snip, snip_rect)
+        # Border
+        pygame.draw.rect(screen, border_color, play_rect, width=2)
 
-    logic.apple.draw_apple()
-    logic.snake.draw_snake()
+        # Flicker
+        if not flicker_done:
+            if frame_count % flicker_interval == 0:
+                show_text = not show_text
+            if frame_count >= flicker_duration:
+                flicker_done = True
+                show_text = True
+
+                if show_text:
+                    # Show label
+                    title_text = title_font.render("Retro Snake Game", True, title_color)
+                    title_rect = title_text.get_rect(center=(800 // 2, 50))
+                    screen.blit(title_text, title_rect)
+
+        else:
+            # Animate typing effect
+            if not done:
+                if count < speed * len(message):
+                    count += 1
+                else:
+                    done = True
+
+            snip = title_font.render(message[0:count // speed], True, title_color)
+            snip_rect = snip.get_rect(center=(800 // 2, 50))
+            screen.blit(snip, snip_rect)
+
+        logic.apple.draw_apple()
+        logic.snake.draw_snake()
 
     screen.blit(scan, (0, 0))
     pygame.display.update()
