@@ -79,10 +79,12 @@ class Logic:
     def __init__(self):
         self.snake = Snake()
         self.apple = Apple(self.snake.body)
+        self.score = 0
 
     def apple_pickup(self):
         if self.snake.body[0] == self.apple.pos:
             self.snake.grow = True
+            self.score += 1
             coin_sound.play()
             self.apple.reposition(self.snake.body)
 
@@ -195,8 +197,10 @@ for y in range(0, 600, 2):
     pygame.draw.line(scan, (0, 0, 0, 100), (0, y), (800, y))
 
 # Fonts
-title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
-enter_coin_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 30)
+title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 45)
+enter_coin_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 23)
+volume_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 20)
+scores = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
 title_color = pygame.Color("goldenrod")
 border_color = (80, 250, 80)
 
@@ -215,6 +219,7 @@ flicker_done = False
 
 # Play startup sound
 intro_chan = startup_sound.play()
+title_chan = None
 bg_started = False
 
 # Class
@@ -236,10 +241,9 @@ while running:
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN,
                                                               pygame.K_KP_ENTER):
                 # Start game
-                title_sound.play()
+                title_chan = title_sound.play()
                 state = "playing"
-
-            continue
+                continue
 
         elif state == "playing":
             if event.type == MOVE_EVENT:
@@ -256,6 +260,7 @@ while running:
                         game_over = True
                         bg_sound.stop()
                         game_over_sfx.play()
+                        state = "game_over"
                     else:
                         snake.move_snake()
                         logic.apple_pickup()
@@ -277,9 +282,21 @@ while running:
                     if logic.snake.direction.x != -1:
                         logic.snake.direction = Vector2(1, 0)
 
+        elif state == "game_over":
+            if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN,
+                                                              pygame.K_KP_ENTER):
+                # Restart game
+                title_sound.play()
+                logic = Logic()
+                game_over = False
+                bg_started = False
+                state = "playing"
+
     # States
-    if state == "playing" and not game_over:
-        if (not bg_started) and (not intro_chan.get_busy()):
+    if state == "playing" and not game_over and not bg_started:
+        intro_done = not intro_chan.get_busy()
+        title_done = not (title_chan and title_chan.get_busy())
+        if intro_done and title_done:
             bg_sound.play(loops=-1)
             bg_started = True
 
@@ -288,13 +305,15 @@ while running:
     if state == "title":
         screen.fill((15, 56, 15))
         title = title_font.render("Retro Snake Game", True, title_color)
-        prompt = enter_coin_font.render("Enter Coin (press ENTER)", True, (57, 255, 20))
+        prompt = enter_coin_font.render("Enter coin (press ENTER) to start", True, (57, 255, 20))
+        volume = volume_font.render("Turn volume up for maximun experience", True, (57, 225, 20))
         screen.blit(title, title.get_rect(center=(400, 150)))
-        screen.blit(prompt, prompt.get_rect(center=(400, 320)))
+        screen.blit(prompt, prompt.get_rect(center=(400, 280)))
+        screen.blit(volume, volume.get_rect(center=(400, 410)))
 
         # Title border
-        pygame.draw.rect(screen, border_color, , width=2)
-
+        border_rect = screen.get_rect()
+        pygame.draw.rect(screen, border_color, border_rect, 2)
 
     elif state == "playing":
         if collision:
@@ -335,6 +354,25 @@ while running:
 
         logic.apple.draw_apple()
         logic.snake.draw_snake()
+
+    if state == "game_over":
+        screen.fill((15, 56, 15))
+
+        # Game Over
+        over = title_font.render("GAME OVER", True, title_color)
+        screen.blit(over, over.get_rect(center=(400, 140)))
+
+        # Score
+        score = scores.render(f"Score: {logic.score}", True, (57, 255, 20))
+        screen.blit(score, score.get_rect(center=(400, 235)))
+
+        # Restart
+        restart = volume_font.render("Insert coin (press ENTER) to restart", True, (57, 255, 20))
+        screen.blit(restart, restart.get_rect(center=(400, 350)))
+
+        # Title border
+        border_rect = screen.get_rect()
+        pygame.draw.rect(screen, border_color, border_rect, 2)
 
     screen.blit(scan, (0, 0))
     pygame.display.update()
