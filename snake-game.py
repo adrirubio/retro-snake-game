@@ -2,6 +2,8 @@
 import pygame, sys
 from pygame.math import Vector2
 from random import randint
+import os
+import pathlib
 
 # State
 state = "title"
@@ -10,6 +12,20 @@ grid_top  = 100
 cell_size = 32
 max_cols = 800 // cell_size
 max_rows = (600 - grid_top) // cell_size + 1
+
+# Save path and file
+save_path = pathlib.Path.home() / ".local" / "share" / "retro-snake-game"
+save_file = save_path / "highscore.txt"
+
+def load_highscore() -> int:
+    try:
+        return int(save_file.read_text())
+    except (FileNotFoundError, ValueError):
+        return 0
+
+def save_highscore(value: int) -> None:
+    save_path.mkdir(parents=True, exist_ok=True)
+    save_file.write_text(str(value))
 
 # Class for apple
 class Apple:
@@ -100,6 +116,8 @@ class Logic:
 
 pygame.init()
 pygame.mixer.init()
+
+high_score = load_highscore()
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Retro Snake Game")
@@ -261,6 +279,10 @@ while running:
                         bg_sound.stop()
                         game_over_sfx.play()
                         state = "game_over"
+
+                        if logic.score > high_score:
+                            high_score = logic.score
+                            save_highscore(high_score)
                     else:
                         snake.move_snake()
                         logic.apple_pickup()
@@ -366,9 +388,13 @@ while running:
         score = scores.render(f"Score: {logic.score}", True, (57, 255, 20))
         screen.blit(score, score.get_rect(center=(400, 235)))
 
+        # Highscore
+        highscore = scores.render(f"High Score: {high_score}", True, (57, 255, 20))
+        screen.blit(highscore, highscore.get_rect(center=(400, 300)))
+
         # Restart
         restart = volume_font.render("Insert coin (press ENTER) to restart", True, (57, 255, 20))
-        screen.blit(restart, restart.get_rect(center=(400, 350)))
+        screen.blit(restart, restart.get_rect(center=(400, 415)))
 
         # Title border
         border_rect = screen.get_rect()
