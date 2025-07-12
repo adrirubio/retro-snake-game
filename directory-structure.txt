@@ -1,17 +1,24 @@
-snake-game/
-│
-├── assets/
-│   ├── game_start.wav
-│   ├── apple.png
-│   ├── small_apple.png
-│   ├── snake_sheet.png
-│   ├── coin.wav
-│   ├── background.png
-│   ├── sound.wav
-│   └── game_over.wav
-│
-│
-│
-├── snake-game.py
+/home/adrian/Documents/retro-snake-game
+├── LICENSE
 ├── README.md
-└── requirements.txt
+├── pyproject.toml
+├── pyproject.toml
+├── requirements.txt
+└── src
+    └── retro_snake_game
+        ├── __init__.py
+        ├── __main__.py
+        ├── assets
+        │   ├── apple.png
+        │   ├── background.png
+        │   ├── coin.wav
+        │   ├── game_over.wav
+        │   ├── game_start.wav
+        │   ├── small_apple.png
+        │   ├── snake_sheet.png
+        │   ├── sound.wav
+        │   └── title_sound.wav
+        ├── retro-font
+        │   └── PressStart2P-Regular.ttf
+        └── snake_game.py
+
