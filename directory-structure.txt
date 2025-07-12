@@ -4,6 +4,7 @@
 ├── pyproject.toml
 ├── pyproject.toml
 ├── requirements.txt
+├── retro-snake-logo.png
 └── src
     └── retro_snake_game
         ├── __init__.py
