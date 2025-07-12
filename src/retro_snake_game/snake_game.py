@@ -5,6 +5,16 @@ from random import randint
 import os
 import pathlib
 
+# Get the directory where this script is located
+GAME_DIR = pathlib.Path(__file__).parent
+
+# Helper function to get asset paths
+def get_asset_path(filename):
+    return str(GAME_DIR / "assets" / filename)
+
+def get_font_path(filename):
+    return str(GAME_DIR / "retro-font" / filename)
+
 # State
 state = "title"
 
@@ -123,28 +133,28 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Retro Snake Game")
 
 # Tile startup sound
-title_sound = pygame.mixer.Sound("assets/title_sound.wav")
+title_sound = pygame.mixer.Sound(get_asset_path("title_sound.wav"))
 
 # Load sounds
-startup_sound = pygame.mixer.Sound("assets/game_start.wav")
-bg_sound = pygame.mixer.Sound("assets/sound.wav")
+startup_sound = pygame.mixer.Sound(get_asset_path("game_start.wav"))
+bg_sound = pygame.mixer.Sound(get_asset_path("sound.wav"))
 
 # Coin sound effect
-coin_sound = pygame.mixer.Sound("assets/coin.wav")
+coin_sound = pygame.mixer.Sound(get_asset_path("coin.wav"))
 
 # Game over sound effect
-game_over_sfx = pygame.mixer.Sound("assets/game_over.wav")
+game_over_sfx = pygame.mixer.Sound(get_asset_path("game_over.wav"))
 
 # Apple imgages
 apple_size = int(cell_size * 3.3)
 small_scale = 0.75
 
 # big apple
-apple_big = pygame.image.load("assets/apple.png").convert_alpha()
+apple_big = pygame.image.load(get_asset_path("apple.png")).convert_alpha()
 apple_big = pygame.transform.scale(apple_big, (apple_size, apple_size))
 
 # small apple
-apple_small_raw = pygame.image.load("assets/small_apple.png").convert_alpha()
+apple_small_raw = pygame.image.load(get_asset_path("small_apple.png")).convert_alpha()
 w  = int(apple_size * small_scale)
 h  = int(apple_size * small_scale)
 apple_small_raw = pygame.transform.scale(apple_small_raw, (w, h))
@@ -155,12 +165,12 @@ apple_small.blit(apple_small_raw, ((apple_size - w)//2, (apple_size - h)//2))
 apple_frames = [apple_big, apple_small]
 
 # Snake sheet
-sheet = pygame.image.load("assets/snake_sheet.png").convert_alpha()
+sheet = pygame.image.load(get_asset_path("snake_sheet.png")).convert_alpha()
 tile = sheet.get_width() // 3
 tiles = [[None]*3 for _ in range(3)]
 
 # Background
-bg_play = pygame.image.load("assets/background.png").convert()
+bg_play = pygame.image.load(get_asset_path("background.png")).convert()
 bg_play = pygame.transform.scale(bg_play, (800, 600 - grid_top))
 
 for r in range(3):
@@ -215,10 +225,10 @@ for y in range(0, 600, 2):
     pygame.draw.line(scan, (0, 0, 0, 100), (0, y), (800, y))
 
 # Fonts
-title_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 45)
-enter_coin_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 23)
-volume_font = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 20)
-scores = pygame.font.Font("retro-font/PressStart2P-Regular.ttf", 40)
+title_font = pygame.font.Font(get_font_path("PressStart2P-Regular.ttf"), 45)
+enter_coin_font = pygame.font.Font(get_font_path("PressStart2P-Regular.ttf"), 23)
+volume_font = pygame.font.Font(get_font_path("PressStart2P-Regular.ttf"), 20)
+scores = pygame.font.Font(get_font_path("PressStart2P-Regular.ttf"), 40)
 title_color = pygame.Color("goldenrod")
 border_color = (80, 250, 80)
 
